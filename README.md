@@ -13,6 +13,12 @@ If you are developing a production application, we recommend using TypeScript an
 
 
 Steps:
+
+# API seleccionada
+API de AEMET
+https://opendata.aemet.es/centrodedescargas/inicio
+Requiere API Key
+
 # Create a repository in GitHub
 https://github.com/analacima/el_tiempo.git
 
@@ -24,5 +30,8 @@ npm create vite@latest
 
 # Install React Bootstrap
 npm install react-bootstrap
+
+# Creación de municipios.json
+Con ayuda de la IA creo el archivo municipios.json a partir de la excel facilitada en la web de documentación de la API. Contiene todas las provincias y municipios para poder listarlos y buscarlos en la API.
 
 
