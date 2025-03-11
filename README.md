@@ -28,6 +28,9 @@ npm create vite@latest
     - Select React
     - Select JavaScript
 
+## Install Bootstrap
+npm install bootstrap
+
 ## Install React Bootstrap
 npm install react-bootstrap
 
