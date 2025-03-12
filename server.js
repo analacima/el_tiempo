@@ -4,7 +4,11 @@ import fetch from 'node-fetch';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://analacima.github.io'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
 app.use(express.json());
 
 const API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbmEubGFjaW1hQGdtYWlsLmNvbSIsImp0aSI6ImMzYzU5ODFlLTNmOTUtNDk0MC04NGFkLWMxMWRjNDYyMTRkMCIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzQxNTQzOTQ5LCJ1c2VySWQiOiJjM2M1OTgxZS0zZjk1LTQ5NDAtODRhZC1jMTFkYzQ2MjE0ZDAiLCJyb2xlIjoiIn0.OvrYpcVXQ-O6TgoHE0kmM-UVVS1V13kLTCHuuBj4COs';

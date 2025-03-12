@@ -4,6 +4,9 @@ import { Container, Row, Col, Form, Card, ButtonGroup, ToggleButton } from 'reac
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
+// URL del backend
+const API_URL = 'https://el-tiempo-server.onrender.com';
+
 // Importación de datos de municipios
 import municipiosData from './data/municipios.json';
 
@@ -102,7 +105,7 @@ function App() {
     
     try {
       // Obtiene los datos meteorológicos diarios
-      const dailyResponse = await fetch(`http://localhost:3001/api/prediccion/diaria/${municipio.id}`);
+      const dailyResponse = await fetch(`${API_URL}/api/prediccion/diaria/${municipio.id}`);
       if (!dailyResponse.ok) {
         throw new Error(`Error en la respuesta de la API diaria: ${dailyResponse.status} ${dailyResponse.statusText}`);
       }
@@ -113,7 +116,7 @@ function App() {
       setWeatherData(dailyInfo);
 
       // Obtiene los datos meteorológicos por horas
-      const hourlyResponse = await fetch(`http://localhost:3001/api/prediccion/horaria/${municipio.id}`);
+      const hourlyResponse = await fetch(`${API_URL}/api/prediccion/horaria/${municipio.id}`);
       if (!hourlyResponse.ok) {
         throw new Error(`Error en la respuesta de la API horaria: ${hourlyResponse.status} ${hourlyResponse.statusText}`);
       }
