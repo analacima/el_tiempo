@@ -1,6 +1,6 @@
 // Importación de dependencias de React y React Bootstrap
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Card } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -10,11 +10,13 @@ import municipiosData from './data/municipios.json';
 
 function App() {
   // Estados para manejar la selección de ubicación y datos meteorológicos
-  const [selectedProvincia, setSelectedProvincia] = useState('50'); // '50' es el código de Zaragoza
+  const [selectedProvincia, setSelectedProvincia] = useState('50'); // '50' es el código de Zaragoza (lo uso por defecto)
   const [selectedMunicipio, setSelectedMunicipio] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null); // para mostrar los errores
+  const [viewType, setViewType] = useState('daily'); // para cambiar la vista entre diaria y horaria
+  const [hourlyData, setHourlyData] = useState(null);
 
   
   // Cargamos Zaragoza inicialmente
@@ -95,21 +97,32 @@ function App() {
     setSelectedMunicipio(municipio);
     setLoading(true);
     setWeatherData(null);
+    setHourlyData(null);
+    setError(null);
     
     try {
-      // Obtiene los datos meteorológicos del municipio seleccionado
-      const response = await fetch(`http://localhost:3001/api/prediccion/diaria/${municipio.id}`);
+      // Obtiene los datos meteorológicos diarios
+      const dailyResponse = await fetch(`http://localhost:3001/api/prediccion/diaria/${municipio.id}`);
+      if (!dailyResponse.ok) {
+        throw new Error(`Error en la respuesta de la API diaria: ${dailyResponse.status} ${dailyResponse.statusText}`);
+      }
+      const dailyInfo = await dailyResponse.json();
+      if (!dailyInfo?.[0]?.prediccion?.dia) {
+        throw new Error('Formato de datos diarios inválido');
+      }
+      setWeatherData(dailyInfo);
 
-      if (!response.ok) {
-        throw new Error('No se pudo conectar con la API de AEMET');
+      // Obtiene los datos meteorológicos por horas
+      const hourlyResponse = await fetch(`http://localhost:3001/api/prediccion/horaria/${municipio.id}`);
+      if (!hourlyResponse.ok) {
+        throw new Error(`Error en la respuesta de la API horaria: ${hourlyResponse.status} ${hourlyResponse.statusText}`);
       }
-      const weatherInfo = await response.json();
-      if (weatherInfo?.[0]?.prediccion?.dia) {
-        setWeatherData(weatherInfo);
-        setError(null);
-      } else {
-        throw new Error('No hay datos disponibles para esta localidad');
+      const hourlyInfo = await hourlyResponse.json();
+      
+      if (!hourlyInfo?.[0]?.prediccion?.dia) {
+        throw new Error('Formato de datos horarios inválido');
       }
+      setHourlyData(hourlyInfo);
     } catch (err) {
       setError(err.message);
       setWeatherData(null);
@@ -161,6 +174,36 @@ function App() {
         </Col>
       </Row>
 
+      {/* Conmutador de vista */}
+      <Row className="mb-3 justify-content-center">
+        <Col xs="auto">
+          <ButtonGroup>
+            <ToggleButton
+              id="daily"
+              type="radio"
+              variant="outline-primary"
+              name="viewType"
+              value="daily"
+              checked={viewType === 'daily'}
+              onChange={(e) => setViewType(e.currentTarget.value)}
+            >
+              Por días
+            </ToggleButton>
+            <ToggleButton
+              id="hourly"
+              type="radio"
+              variant="outline-primary"
+              name="viewType"
+              value="hourly"
+              checked={viewType === 'hourly'}
+              onChange={(e) => setViewType(e.currentTarget.value)}
+            >
+              Por horas
+            </ToggleButton>
+          </ButtonGroup>
+        </Col>
+      </Row>
+
       {/* Indicador de carga */}
       {loading && <div className="text-center">Cargando...</div>}
 
@@ -168,7 +211,7 @@ function App() {
       {error && <div className="text-center text-danger mb-3">{error}</div>}
 
       {/* Visualización de datos meteorológicos */}
-      {weatherData && (
+      {viewType === 'daily' && weatherData && (
         <Row>
           {weatherData[0].prediccion.dia.map((dia, index) => (
             <Col key={index} xs={12} sm={6} md={4} lg={3} className="mb-3">
@@ -185,6 +228,29 @@ function App() {
               </Card>
             </Col>
           ))}
+        </Row>
+      )}
+
+      {viewType === 'hourly' && hourlyData && (
+        <Row>
+          {hourlyData[0].prediccion.dia[0].temperatura.map((temp, index) => {
+            const estado = hourlyData[0].prediccion.dia[0].estadoCielo[index];
+            return (
+              <Col key={index} xs={6} sm={4} md={3} lg={2} className="mb-3">
+                <Card>
+                  <Card.Body className="text-center">
+                    <h5>{temp.periodo}:00</h5>
+                    <div className="weather-icon">
+                      {getWeatherIcon(estado?.descripcion)}
+                    </div>
+                    <p className="temp">
+                      {temp.value}°C
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+            );
+          })}
         </Row>
       )}
     </Container>
