@@ -14,6 +14,7 @@ function App() {
   const [selectedMunicipio, setSelectedMunicipio] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null); // para mostrar los errores
 
   
   // Cargamos Zaragoza inicialmente
@@ -98,10 +99,20 @@ function App() {
     try {
       // Obtiene los datos meteorológicos del municipio seleccionado
       const response = await fetch(`http://localhost:3001/api/prediccion/diaria/${municipio.id}`);
+
+      if (!response.ok) {
+        throw new Error('No se pudo conectar con la API de AEMET');
+      }
       const weatherInfo = await response.json();
       if (weatherInfo?.[0]?.prediccion?.dia) {
         setWeatherData(weatherInfo);
+        setError(null);
+      } else {
+        throw new Error('No hay datos disponibles para esta localidad');
       }
+    } catch (err) {
+      setError(err.message);
+      setWeatherData(null);
     } finally {
       setLoading(false);
     }
@@ -152,6 +163,9 @@ function App() {
 
       {/* Indicador de carga */}
       {loading && <div className="text-center">Cargando...</div>}
+
+      {/* Mensaje de error */}
+      {error && <div className="text-center text-danger mb-3">{error}</div>}
 
       {/* Visualización de datos meteorológicos */}
       {weatherData && (
